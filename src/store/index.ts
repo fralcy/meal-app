@@ -70,17 +70,29 @@ export const useAppStore = create<AppState>()(
 
       generatePlan: () => {
         const { recipes, mealPlan } = get();
-        const newPlan = mealPlan.map((day) => ({
-          ...day,
-          meals: [
-            {
-              id: `meal-${Date.now()}-${Math.random()}`,
-              name: recipes[Math.floor(Math.random() * recipes.length)]?.name || 'Random Meal',
-              servings: 2,
-              mealType: 'dinner' as const,
-            },
-          ],
-        }));
+        const mealTypes: Array<'breakfast' | 'lunch' | 'dinner'> = ['breakfast', 'lunch', 'dinner'];
+
+        const newPlan = mealPlan.map((day, dayIndex) => {
+          // Generate 1-2 meals per day
+          const mealCount = dayIndex % 3 === 0 ? 1 : 2;
+          const meals: Meal[] = [];
+
+          for (let i = 0; i < mealCount; i++) {
+            const randomRecipe = recipes[Math.floor(Math.random() * recipes.length)];
+            if (randomRecipe) {
+              meals.push({
+                id: `meal-${Date.now()}-${Math.random()}`,
+                name: randomRecipe.name,
+                recipeId: randomRecipe.id,
+                servings: 2,
+                mealType: mealTypes[i % mealTypes.length],
+              });
+            }
+          }
+
+          return { ...day, meals };
+        });
+
         set({ mealPlan: newPlan });
       },
 
